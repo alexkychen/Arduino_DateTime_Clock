@@ -71,13 +71,13 @@ void LightUp() {
   lcd.setCursor(0,0);
   lcd.print("                ");
   lcd.setCursor(0,0);
-  lcd.print("Dawning...");
+  lcd.print("Brightening.");
   for (int f=0; f<=255; f=f+1){
     analogWrite(11,f);
-    lcd.setCursor(11,0);
+    lcd.setCursor(12,0);
     lcd.print("    ");
     int power = f * 100 / 255;
-    lcd.setCursor(11,0);
+    lcd.setCursor(12,0);
     lcd.print(power);
     lcd.print("%");
     delay(100);
@@ -89,7 +89,7 @@ void LightOff(){
   lcd.setCursor(0,0);
   lcd.print("                ");
   lcd.setCursor(0,0);
-  lcd.print("Dusking...");
+  lcd.print("Dimming...");
   for (int f=255; f>=0; f=f-1){
     analogWrite(11,f);
     lcd.setCursor(11,0);
