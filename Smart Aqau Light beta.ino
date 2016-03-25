@@ -42,6 +42,19 @@ int BLEDturnOffMinute;
 int BLEDdimDuration;
 int BLEDdelay;
 
+int CLEDturnOnHour;
+int CLEDturnOnMinute;
+int CLEDturnOffHour;
+int CLEDturnOffMinute;
+int CLEDdimDuration;
+int CLEDdelay;
+
+int WLEDturnOnHour;
+int WLEDturnOnMinute;
+int WLEDturnOffHour;
+int WLEDturnOffMinute;
+int WLEDdimDuration;
+int WLEDdelay;
 
 // define some values used by the panel and buttons
 int lcd_key     = 0;
@@ -77,8 +90,14 @@ void setup() {
   lcd.print("WELCOME!");
   setSyncProvider(RTC.get);   // the function to get the time from the RTC
   BLEDturnOnHour=EEPROM.read(0); BLEDturnOnMinute=EEPROM.read(1);BLEDturnOffHour=EEPROM.read(2);BLEDturnOffMinute=EEPROM.read(3);BLEDdimDuration=EEPROM.read(4);
+  CLEDturnOnHour=EEPROM.read(5); CLEDturnOnMinute=EEPROM.read(6);CLEDturnOffHour=EEPROM.read(7);CLEDturnOffMinute=EEPROM.read(8);CLEDdimDuration=EEPROM.read(9);
+  WLEDturnOnHour=EEPROM.read(10); WLEDturnOnMinute=EEPROM.read(11);WLEDturnOffHour=EEPROM.read(12);WLEDturnOffMinute=EEPROM.read(13);WLEDdimDuration=EEPROM.read(14);  
   Alarm.alarmRepeat(BLEDturnOnHour,BLEDturnOnMinute,0,BLEDcycleOn); 
+  Alarm.alarmRepeat(CLEDturnOnHour,CLEDturnOnMinute,0,CLEDcycleOn); 
+  Alarm.alarmRepeat(WLEDturnOnHour,WLEDturnOnMinute,0,WLEDcycleOn); 
   Alarm.alarmRepeat(BLEDturnOffHour,BLEDturnOffMinute,0,BLEDcycleOff); 
+  Alarm.alarmRepeat(CLEDturnOffHour,CLEDturnOffMinute,0,CLEDcycleOff);
+  Alarm.alarmRepeat(WLEDturnOffHour,WLEDturnOffMinute,0,WLEDcycleOff);
   
   //define datetime
   YEAR = year();
@@ -87,14 +106,16 @@ void setup() {
   HOUR = hour();
   MINUTE = minute();
   delay(3000);
-  lcd.clear();
+  lcd.clear();                                                                                                                                                                        
+  checkBLED();delay(200);
+  checkCLED();delay(200);
+  checkWLED();delay(200);
 }
 
 void loop(){
   Alarm.delay(0); //call alarm to cycle LED
   switch (taskIndex){
-    case 0:{ mainMenu(); break;}
-    
+    case 0:{ mainMenu(); break;} 
     case 1:{ //Set date time
       switch (setDatetimeTX){
         case 0: { setDatetime(); break;}
@@ -104,7 +125,6 @@ void loop(){
         case 4: { setHour(); break;}
         case 5: { setMin(); break;}
       } break;}
- 
     case 2:{ 
       switch (setLEDTX){
         case 0: {setBLED(); break;}
@@ -114,6 +134,24 @@ void loop(){
         case 4: {setBLEDturnOffMin(); break;}
         case 5: {setBLEDdimDur(); break;}
       } break;}
+    case 3:{ 
+      switch (setLEDTX){
+        case 0: {setCLED(); break;}
+        case 1: {setCLEDturnOnHour(); break;}
+        case 2: {setCLEDturnOnMin(); break;}
+        case 3: {setCLEDturnOffHour(); break;}
+        case 4: {setCLEDturnOffMin(); break;}
+        case 5: {setCLEDdimDur(); break;}
+      } break;}    
+    case 4:{ 
+      switch (setLEDTX){
+        case 0: {setWLED(); break;}
+        case 1: {setWLEDturnOnHour(); break;}
+        case 2: {setWLEDturnOnMin(); break;}
+        case 3: {setWLEDturnOffHour(); break;}
+        case 4: {setWLEDturnOffMin(); break;}
+        case 5: {setWLEDdimDur(); break;}
+      } break;}    
     case 7:{ dispDatetime(); break;}
   }
 }
@@ -320,6 +358,52 @@ void setMin(){
   } 
 }
 
+//check LEDs current status 
+void checkBLED(){
+  HOUR = hour();
+  MINUTE = minute();
+  if (BLEDturnOnHour < BLEDturnOffHour){
+    if (HOUR > BLEDturnOnHour && HOUR < BLEDturnOffHour){analogWrite(11,255);}
+    else if (HOUR == BLEDturnOnHour && MINUTE > BLEDturnOnMinute){analogWrite(11,255);}
+    else if (HOUR == BLEDturnOffHour && MINUTE < BLEDturnOffMinute){analogWrite(11,255);} }
+  else if (BLEDturnOnHour > BLEDturnOffHour){
+    if (HOUR > BLEDturnOnHour || HOUR < BLEDturnOffHour){analogWrite(11,255);}
+    else if (HOUR == BLEDturnOnHour && MINUTE > BLEDturnOnMinute){analogWrite(11,255);}
+    else if (HOUR == BLEDturnOffHour && MINUTE < BLEDturnOffMinute){analogWrite(11,255);} }
+  else if (BLEDturnOnHour == BLEDturnOffHour && HOUR == BLEDturnOnHour){
+    if (MINUTE > BLEDturnOnMinute){analogWrite(11,255);} }
+}
+
+void checkCLED(){
+  HOUR = hour();
+  MINUTE = minute();
+  if (CLEDturnOnHour < CLEDturnOffHour){
+    if (HOUR > CLEDturnOnHour && HOUR < CLEDturnOffHour){analogWrite(12,255);}
+    else if (HOUR == CLEDturnOnHour && MINUTE > CLEDturnOnMinute){analogWrite(12,255);}
+    else if (HOUR == CLEDturnOffHour && MINUTE < CLEDturnOffMinute){analogWrite(12,255);} }
+  else if (CLEDturnOnHour > CLEDturnOffHour){
+    if (HOUR > CLEDturnOnHour || HOUR < CLEDturnOffHour){analogWrite(12,255);}
+    else if (HOUR == CLEDturnOnHour && MINUTE > CLEDturnOnMinute){analogWrite(12,255);}
+    else if (HOUR == CLEDturnOffHour && MINUTE < CLEDturnOffMinute){analogWrite(12,255);} }
+  else if (CLEDturnOnHour == CLEDturnOffHour && HOUR == CLEDturnOnHour){
+    if (MINUTE > CLEDturnOnMinute){analogWrite(12,255);} }
+}
+
+void checkWLED(){
+  HOUR = hour();
+  MINUTE = minute();
+  delay(10);
+  if (WLEDturnOnHour < WLEDturnOffHour){
+    if (HOUR > WLEDturnOnHour && HOUR < WLEDturnOffHour){analogWrite(13,255);}
+    else if (HOUR == WLEDturnOnHour && MINUTE > WLEDturnOnMinute){analogWrite(13,255);}
+    else if (HOUR == WLEDturnOffHour && MINUTE < WLEDturnOffMinute){analogWrite(13,255);} }
+  else if (WLEDturnOnHour > WLEDturnOffHour){
+    if (HOUR > WLEDturnOnHour || HOUR < WLEDturnOffHour){analogWrite(13,255);}
+    else if (HOUR == WLEDturnOnHour && MINUTE > WLEDturnOnMinute){analogWrite(13,255);}
+    else if (HOUR == WLEDturnOffHour && MINUTE < WLEDturnOffMinute){analogWrite(13,255);} }
+  else if (WLEDturnOnHour == WLEDturnOffHour && HOUR == WLEDturnOnHour){
+    if (MINUTE > WLEDturnOnMinute){analogWrite(13,255);} }
+}
 //set up Blue LED timer (for return)
 void setBLED(){
   taskIndex = 2;
@@ -327,10 +411,10 @@ void setBLED(){
   lcd.setCursor(0,0);
   lcd.print("B_LED  <RETURN> ");
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(125);
   lcd.setCursor(0,1);
-  lcd.print("  ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("  ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(25);
   lcd_key = read_LCD_buttons();
   switch (lcd_key) {
@@ -350,10 +434,10 @@ void setBLEDturnOnHour(){
   lcd.setCursor(0,0);
   lcd.print("B_LED<TurnOn at>");
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(125);
   lcd.setCursor(0,1);
-  lcd.print("R ");lcd.print("  :");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");lcd.print("  ");lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(25);
   lcd_key = read_LCD_buttons();
   switch (lcd_key) {
@@ -378,10 +462,10 @@ void setBLEDturnOnMin(){
   lcd.setCursor(0,0);
   lcd.print("B_LED<TurnOn at>");
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(125);
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(25);
   lcd_key = read_LCD_buttons();
   switch (lcd_key) {
@@ -395,7 +479,7 @@ void setBLEDturnOnMin(){
        if(BLEDturnOnMinute>=0&&BLEDturnOnMinute<=55){ EEPROM.update(1,BLEDturnOnMinute); break;}
        else {BLEDturnOnMinute = 55; break; } break;}
     case btnDOWN: { BLEDturnOnMinute = BLEDturnOnMinute - 5;
-       if(BLEDturnOnMinute>=0&&BLEDturnOnMinute<=59){ EEPROM.update(1,BLEDturnOnMinute); break;}
+       if(BLEDturnOnMinute>=0&&BLEDturnOnMinute<=55){ EEPROM.update(1,BLEDturnOnMinute); break;}
        else {BLEDturnOnMinute = 0; break; } break;}
   }
 }
@@ -406,10 +490,10 @@ void setBLEDturnOffHour(){
   lcd.setCursor(0,0);
   lcd.print("B_LED<TurnOf at>");
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(125);
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");lcd.print("  ");lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");lcd.print("  ");lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(25);
   lcd_key = read_LCD_buttons();
   switch (lcd_key) {
@@ -434,10 +518,10 @@ void setBLEDturnOffMin(){
   lcd.setCursor(0,0);
   lcd.print("B_LED<TurnOf at>");
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(125);
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digits(BLEDdimDuration);
   delay(25);
   lcd_key = read_LCD_buttons();
   switch (lcd_key) {
@@ -451,7 +535,7 @@ void setBLEDturnOffMin(){
        if(BLEDturnOffMinute>=0&&BLEDturnOffMinute<=55){ EEPROM.update(3,BLEDturnOffMinute); break;}
        else {BLEDturnOffMinute = 55; break; } break;}
     case btnDOWN: { BLEDturnOffMinute = BLEDturnOffMinute - 5;
-       if(BLEDturnOffMinute>=0&&BLEDturnOffMinute<=59){ EEPROM.update(3,BLEDturnOffMinute); break;}
+       if(BLEDturnOffMinute>=0&&BLEDturnOffMinute<=55){ EEPROM.update(3,BLEDturnOffMinute); break;}
        else {BLEDturnOffMinute = 0; break; } break;}
   }
 }
@@ -462,10 +546,10 @@ void setBLEDdimDur(){
   lcd.setCursor(0,0);
   lcd.print("B_LED<dim. dur.>");
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print(" ");print2digits(BLEDdimDuration);
   delay(125);
   lcd.setCursor(0,1);
-  lcd.print("R ");print2digits(BLEDturnOnHour);lcd.print(":");print2digits(BLEDturnOnMinute);lcd.print(" ");print2digits(BLEDturnOffHour);lcd.print(":");print2digits(BLEDturnOffMinute);lcd.print("   ");
+  lcd.print("R ");print2digit0(BLEDturnOnHour);lcd.print(":");print2digit0(BLEDturnOnMinute);lcd.print(" ");print2digit0(BLEDturnOffHour);lcd.print(":");print2digit0(BLEDturnOffMinute);lcd.print("   ");
   delay(25);
   lcd_key = read_LCD_buttons();
   switch (lcd_key) {
@@ -517,13 +601,389 @@ void BLEDcycleOff(){
 //set up Cool LED timer (for return)
 void setCLED(){
   taskIndex = 3;
+  setLEDTX = 0;
+  lcd.setCursor(0,0);
+  lcd.print("C_LED  <RETURN> ");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("  ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnSELECT:{ taskIndex = 0; delay(350); break;}
+  }
+}
+//set up Cool LED timer (for turn on hour)
+void setCLEDturnOnHour(){
+  taskIndex = 3;
+  setLEDTX = 1;
+  lcd.setCursor(0,0);
+  lcd.print("C_LED<TurnOn at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");lcd.print("  ");lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { CLEDturnOnHour = CLEDturnOnHour + 1;
+       if(CLEDturnOnHour>=0&&CLEDturnOnHour<=23){ EEPROM.update(5,CLEDturnOnHour); break;}
+       else {CLEDturnOnHour = 23; break; } break;}
+    case btnDOWN: { CLEDturnOnHour = CLEDturnOnHour - 1;
+       if(CLEDturnOnHour>=0&&CLEDturnOnHour<=23){ EEPROM.update(5,CLEDturnOnHour); break;}
+       else {CLEDturnOnHour = 0; break; } break;}
+  }
+}
+//set up Cool LED timer (for turn on minute)
+void setCLEDturnOnMin(){
+  taskIndex = 3;
+  setLEDTX = 2;
+  lcd.setCursor(0,0);
+  lcd.print("C_LED<TurnOn at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { CLEDturnOnMinute = CLEDturnOnMinute + 5;
+       if(CLEDturnOnMinute>=0&&CLEDturnOnMinute<=55){ EEPROM.update(6,CLEDturnOnMinute); break;}
+       else {CLEDturnOnMinute = 55; break; } break;}
+    case btnDOWN: { CLEDturnOnMinute = CLEDturnOnMinute - 5;
+       if(CLEDturnOnMinute>=0&&CLEDturnOnMinute<=55){ EEPROM.update(6,CLEDturnOnMinute); break;}
+       else {CLEDturnOnMinute = 0; break; } break;}
+  }
+}
+//set up Cool LED timer (for turn off hour)
+void setCLEDturnOffHour(){
+  taskIndex = 3;
+  setLEDTX = 3;
+  lcd.setCursor(0,0);
+  lcd.print("C_LED<TurnOf at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");lcd.print("  ");lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { CLEDturnOffHour = CLEDturnOffHour + 1;
+       if(CLEDturnOffHour>=0&&CLEDturnOffHour<=23){ EEPROM.update(7,CLEDturnOffHour); break;}
+       else {CLEDturnOffHour = 23; break; } break;}
+    case btnDOWN: { CLEDturnOffHour = CLEDturnOffHour - 1;
+       if(CLEDturnOffHour>=0&&CLEDturnOffHour<=23){ EEPROM.update(7,CLEDturnOffHour); break;}
+       else {CLEDturnOffHour = 0; break; } break;}
+  }
+}
+//set up Cool LED time (for turn off minute)
+void setCLEDturnOffMin(){
+  taskIndex = 3;
+  setLEDTX = 4;
+  lcd.setCursor(0,0);
+  lcd.print("C_LED<TurnOf at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { CLEDturnOffMinute = CLEDturnOffMinute + 5;
+       if(CLEDturnOffMinute>=0&&CLEDturnOffMinute<=55){ EEPROM.update(8,CLEDturnOffMinute); break;}
+       else {CLEDturnOffMinute = 55; break; } break;}
+    case btnDOWN: { CLEDturnOffMinute = CLEDturnOffMinute - 5;
+       if(CLEDturnOffMinute>=0&&CLEDturnOffMinute<=55){ EEPROM.update(8,CLEDturnOffMinute); break;}
+       else {CLEDturnOffMinute = 0; break; } break;}
+  }
+}
+//set up Cool LED timer (for dimming duration)
+void setCLEDdimDur(){
+  taskIndex = 3;
+  setLEDTX = 5;
+  lcd.setCursor(0,0);
+  lcd.print("C_LED<dim. dur.>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print(" ");print2digits(CLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(CLEDturnOnHour);lcd.print(":");print2digit0(CLEDturnOnMinute);lcd.print(" ");print2digit0(CLEDturnOffHour);lcd.print(":");print2digit0(CLEDturnOffMinute);lcd.print("   ");
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { CLEDdimDuration = CLEDdimDuration + 5;
+       if(CLEDdimDuration>=0&&CLEDdimDuration<=20){ EEPROM.update(9,CLEDdimDuration); break;}
+       else {CLEDdimDuration = 20; break; } break;}
+    case btnDOWN: { CLEDdimDuration = CLEDdimDuration - 5;
+       if(CLEDdimDuration>=0&&CLEDdimDuration<=20){ EEPROM.update(9,CLEDdimDuration); break;}
+       else {CLEDdimDuration = 0; break; } break;}
+  }
+}
+//Turn on CLED
+void CLEDcycleOn(){
+  CLEDdelay = CLEDdimDuration * 60000 / 256;
+  lcd.setCursor(0,1);
+  lcd.print("                ");
+  lcd.setCursor(0,1);
+  lcd.print("CLED PowerUp");
+  for (int f=0; f<=255; f=f+1){
+    analogWrite(12, f); //BLED connect to pin 11 via TIP122 transistor
+    lcd.setCursor(13,1);lcd.print("   ");
+    int power = f * 100 / 255;
+    lcd.setCursor(13,1);lcd.print(power);lcd.print("%");
+    delay(CLEDdelay);
+   }
+}
+//Turn off CLED
+void CLEDcycleOff(){
+  CLEDdelay = CLEDdimDuration * 60000 / 256;
+  lcd.setCursor(0,1);
+  lcd.print("                ");
+  lcd.setCursor(0,1);
+  lcd.print("CLED Dimming");
+  for (int f=255; f>=0; f=f-1){
+    analogWrite(12, f);
+    lcd.setCursor(13,1);lcd.print("   ");
+    int power = f * 100 /255;
+    lcd.setCursor(13,1);lcd.print(power);lcd.print("%");
+    delay(CLEDdelay);
+  }
 }
 
-
-
-
+//set up Warm LED timer (for return)
 void setWLED(){
   taskIndex = 4;
+  setLEDTX = 0;
+  lcd.setCursor(0,0);
+  lcd.print("W_LED  <RETURN> ");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("  ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnSELECT:{ taskIndex = 0; delay(350); break;}
+  }
+}
+//set up Warm LED timer (for turn on hour)
+void setWLEDturnOnHour(){
+  taskIndex = 4;
+  setLEDTX = 1;
+  lcd.setCursor(0,0);
+  lcd.print("W_LED<TurnOn at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");lcd.print("  ");lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { WLEDturnOnHour = WLEDturnOnHour + 1;
+       if(WLEDturnOnHour>=0&&WLEDturnOnHour<=23){ EEPROM.update(10,WLEDturnOnHour); break;}
+       else {WLEDturnOnHour = 23; break; } break;}
+    case btnDOWN: { WLEDturnOnHour = WLEDturnOnHour - 1;
+       if(WLEDturnOnHour>=0&&WLEDturnOnHour<=23){ EEPROM.update(10,WLEDturnOnHour); break;}
+       else {WLEDturnOnHour = 0; break; } break;}
+  }
+}
+//set up Warm LED timer (for turn on minute)
+void setWLEDturnOnMin(){
+  taskIndex = 4;
+  setLEDTX = 2;
+  lcd.setCursor(0,0);
+  lcd.print("W_LED<TurnOn at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { WLEDturnOnMinute = WLEDturnOnMinute + 5;
+       if(WLEDturnOnMinute>=0&&WLEDturnOnMinute<=55){ EEPROM.update(11,WLEDturnOnMinute); break;}
+       else {WLEDturnOnMinute = 55; break; } break;}
+    case btnDOWN: { WLEDturnOnMinute = WLEDturnOnMinute - 5;
+       if(WLEDturnOnMinute>=0&&WLEDturnOnMinute<=55){ EEPROM.update(11,WLEDturnOnMinute); break;}
+       else {WLEDturnOnMinute = 0; break; } break;}
+  }
+}
+//set up Warm LED timer (for turn off hour)
+void setWLEDturnOffHour(){
+  taskIndex = 4;
+  setLEDTX = 3;
+  lcd.setCursor(0,0);
+  lcd.print("W_LED<TurnOf at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");lcd.print("  ");lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { WLEDturnOffHour = WLEDturnOffHour + 1;
+       if(WLEDturnOffHour>=0&&WLEDturnOffHour<=23){ EEPROM.update(12,WLEDturnOffHour); break;}
+       else {WLEDturnOffHour = 23; break; } break;}
+    case btnDOWN: { WLEDturnOffHour = WLEDturnOffHour - 1;
+       if(WLEDturnOffHour>=0&&WLEDturnOffHour<=23){ EEPROM.update(12,WLEDturnOffHour); break;}
+       else {WLEDturnOffHour = 0; break; } break;}
+  }
+}
+//set up Warm LED time (for turn off minute)
+void setWLEDturnOffMin(){
+  taskIndex = 4;
+  setLEDTX = 4;
+  lcd.setCursor(0,0);
+  lcd.print("W_LED<TurnOf at>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");lcd.print("  ");lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { WLEDturnOffMinute = WLEDturnOffMinute + 5;
+       if(WLEDturnOffMinute>=0&&WLEDturnOffMinute<=55){ EEPROM.update(13,WLEDturnOffMinute); break;}
+       else {WLEDturnOffMinute = 55; break; } break;}
+    case btnDOWN: { WLEDturnOffMinute = WLEDturnOffMinute - 5;
+       if(WLEDturnOffMinute>=0&&WLEDturnOffMinute<=55){ EEPROM.update(13,WLEDturnOffMinute); break;}
+       else {WLEDturnOffMinute = 0; break; } break;}
+  }
+}
+//set up Warm LED timer (for dimming duration)
+void setWLEDdimDur(){
+  taskIndex = 4;
+  setLEDTX = 5;
+  lcd.setCursor(0,0);
+  lcd.print("W_LED<dim. dur.>");
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print(" ");print2digits(WLEDdimDuration);
+  delay(125);
+  lcd.setCursor(0,1);
+  lcd.print("R ");print2digit0(WLEDturnOnHour);lcd.print(":");print2digit0(WLEDturnOnMinute);lcd.print(" ");print2digit0(WLEDturnOffHour);lcd.print(":");print2digit0(WLEDturnOffMinute);lcd.print("   ");
+  delay(25);
+  lcd_key = read_LCD_buttons();
+  switch (lcd_key) {
+    case btnRIGHT:{setLEDTX = setLEDTX + 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 5; break;} break;}
+    case btnLEFT:{setLEDTX = setLEDTX - 1; 
+      if(setLEDTX >= 0 && setLEDTX<=5){ loop(); delay(200); break;}
+      else {setLEDTX  = 0; break;} break;}
+    case btnUP: { WLEDdimDuration = WLEDdimDuration + 5;
+       if(WLEDdimDuration>=0&&WLEDdimDuration<=20){ EEPROM.update(14,WLEDdimDuration); break;}
+       else {WLEDdimDuration = 20; break; } break;}
+    case btnDOWN: { WLEDdimDuration = WLEDdimDuration - 5;
+       if(WLEDdimDuration>=0&&WLEDdimDuration<=20){ EEPROM.update(14,WLEDdimDuration); break;}
+       else {WLEDdimDuration = 0; break; } break;}
+  }
+}
+//Turn on WLED
+void WLEDcycleOn(){
+  WLEDdelay = WLEDdimDuration * 60000 / 256;
+  lcd.setCursor(0,1);
+  lcd.print("                ");
+  lcd.setCursor(0,1);
+  lcd.print("WLED PowerUp");
+  for (int f=0; f<=255; f=f+1){
+    analogWrite(13, f); //WLED connect to pin 11 via TIP122 transistor
+    lcd.setCursor(13,1);lcd.print("   ");
+    int power = f * 100 / 255;
+    lcd.setCursor(13,1);lcd.print(power);lcd.print("%");
+    delay(WLEDdelay);
+   }
+}
+//Turn off WLED
+void WLEDcycleOff(){
+  WLEDdelay = WLEDdimDuration * 60000 / 256;
+  lcd.setCursor(0,1);
+  lcd.print("                ");
+  lcd.setCursor(0,1);
+  lcd.print("WLED Dimming");
+  for (int f=255; f>=0; f=f-1){
+    analogWrite(13, f);
+    lcd.setCursor(13,1);lcd.print("   ");
+    int power = f * 100 /255;
+    lcd.setCursor(13,1);lcd.print(power);lcd.print("%");
+    delay(WLEDdelay);
+  }
 }
 
 void setH2OTemp(){
